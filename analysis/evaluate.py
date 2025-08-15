@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import logging
 
+
 def evaluate_data(processed_path: str):
     logger = logging.getLogger(__name__)
     out_dir = os.path.join("data", "outputs")

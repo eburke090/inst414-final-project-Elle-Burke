@@ -8,7 +8,6 @@ def extract_data(url="https://data.lacity.org/api/views/2nrs-mtv8/rows.csv?acces
     Downloads raw LAPD crime data and saves to data/raw/.
     """
 
-
     print("Extracting raw data from LAPD source...")
     logger = logging.getLogger(__name__)
     extracted_dir = os.path.join("data", "extracted")

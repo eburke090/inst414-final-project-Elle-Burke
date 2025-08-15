@@ -15,6 +15,7 @@ def plot_hourly_patterns():
     figs_dir = os.path.join(out_dir, "figures")
     os.makedirs(figs_dir, exist_ok=True)
 
+
     try:
         df = pd.read_csv(os.path.join(out_dir, "hourly_trends.csv"))
         plt.figure(figsize=(10, 6))

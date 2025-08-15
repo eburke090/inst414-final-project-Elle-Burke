@@ -6,6 +6,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 
+
 def run_model(processed_path: str, k_values=(3,4,5,6,7,)):
     logger = logging.getLogger(__name__)
     out_dir = os.path.join("data", "outputs")

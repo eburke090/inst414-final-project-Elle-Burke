@@ -11,6 +11,7 @@ def plot_monthly_trends():
     - Saves the plot to data/analyzed/monthly_trends_plot.png
     """
      
+     
     logger = logging.getLogger(__name__)
     out_dir = os.path.join("data", "outputs")
     figs_dir = os.path.join(out_dir, "figures")

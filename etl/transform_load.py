@@ -16,7 +16,6 @@ def _convert_columns(df: pd.DataFrame) -> pd.DataFrame:
         'Crm Cd Desc': 'Crime_Description',
     }
 
-
     cols_lower = {col.lower(): col for col in df.columns}
     for key, new_name in list(rename_map.items()):
         #if exact not present, try case insensitive match
