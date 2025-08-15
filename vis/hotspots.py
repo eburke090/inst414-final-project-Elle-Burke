@@ -18,7 +18,6 @@ def plot_hotspots(top_n=10):
     figs_dir = os.path.join(out_dir, "figures")
     os.makedirs(figs_dir, exist_ok=True)
 
-
     try:
         df = pd.read_csv(os.path.join(out_dir, "area_hotspots.csv")).head(top_n)
         plt.figure(figsize=(10, 6))

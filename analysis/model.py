@@ -37,7 +37,6 @@ def run_model(processed_path: str, k_values=(3,4,5,6,7,)):
                 logger.warning(f"Silhouette score calculation failed for k={k}: {e}")
             rows.append({'k': k, 'inertia': inertia, 'silhouette': sil})
 
-
         metrics = pd.DataFrame(rows)
         metrics_path = os.path.join(metrics_dir, "kmeans_metrics.csv")
         metrics.to_csv(metrics_path, index=False)

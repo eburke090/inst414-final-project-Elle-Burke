@@ -27,7 +27,6 @@ def evaluate_data(processed_path: str):
 
         logger.info(f"Evaluation reports saved to {out_dir}")
         return out_dir
-    
     except Exception as e:
         logger.exception("Evaluation failed.")
         raise

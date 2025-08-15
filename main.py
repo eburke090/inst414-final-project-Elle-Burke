@@ -60,6 +60,7 @@ def run_visualizations():
         except Exception:
             logging.error(f"Visualization {func.__name__} failed")
 
+
 if __name__ == "__main__":
     setup_logging()
     try:

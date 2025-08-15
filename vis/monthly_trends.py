@@ -29,7 +29,6 @@ def plot_monthly_trends():
         plt.tight_layout()
         plt.savefig(path)
         logger.info(f"Saved{path}")
-
     except Exception as e:
         logger.exception("Failed to generate monthly trends plot.")
         raise
