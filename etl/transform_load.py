@@ -6,13 +6,10 @@ def _convert_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Helper function to convert columns to appropriate data types.
     """
     rename_map = {
-        'DATE': 'Incident_Date',
-        'DATE OCCURRED': 'Incident_Date',
-        'DATE_OCC': 'Incident_Date',
-        'TIME': 'TIME',
-        'TIME OCCURRED': 'TIME',
-        'TIME_OCC': 'TIME',
-        'Crm Cd': 'Crime_Desecription',
+        'DATE OCC': 'Incident_Date',
+        'Date Rptd': 'Report_Date ',
+        'TIME OCC': 'TIME',
+        'Crm Cd': 'Crime_Code',
         'Crm Cd Desc': 'Crime_Description',
     }
 
@@ -36,6 +33,7 @@ def transform_data(extracted_path: str):
     try:
         logger.info(f"Reading extracted data from {extracted_path}.")
         df = pd.read_csv(extracted_path)
+        logger.info(f"Columns in raw data: {df.columns.tolist()}")
         df = _convert_columns(df)
 
         required = ['Incident_Date', 'TIME', 'Crime_Description']
@@ -47,7 +45,7 @@ def transform_data(extracted_path: str):
         df['Incident_Date'] = pd.to_datetime(df['Incident_Date'], errors='coerce')
         df = df.dropna(subset=['Incident_Date'])
         df = df.drop_duplicates()
-        df.reset_index(drop=True)
+        df.reset_index(drop=True,inplace=True)
         if 'ID' not in df.columns:
             df['ID'] = df.index + 1
 

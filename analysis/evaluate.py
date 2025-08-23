@@ -1,33 +1,73 @@
-import pandas as pd
 import os
+import json
 import logging
+import pandas as pd
 
+def evaluate_kmeans(metrics_csv: str, out_dir: str = "data/outputs"):
+    """
+    Read CSV and make an evaluation report:
 
-def evaluate_data(processed_path: str):
+    Returns dict with best_k and paths to reports
+    """
     logger = logging.getLogger(__name__)
-    out_dir = os.path.join("data", "outputs")
-    os.makedirs(out_dir, exist_ok=True)
+    metrics = pd.read_csv(metrics_csv)
 
-    try:
-        df = pd.read_csv(processed_path)
-        df['Incident_Date'] = pd.to_datetime(df['Incident_Date'], errors='coerce')
+    metrics_dir = os.path.join(out_dir, "metrics")
+    os.makedirs(metrics_dir, exist_ok=True)
 
-        # Monthly trends
-        monthly = df.groupby(df['Incident_Date'].dt.to_period('M')).size().reset_index(name='crime_count')
-        monthly['month'] = monthly['Incident_Date'].astype(str)
-        monthly = monthly[['month', 'crime_count']]
-        monthly.to_csv(os.path.join(out_dir, "monthly_trends.csv"), index=False)
+    # Pick best k using silhouette if availabl
+    if metrics["silhouette"].notna().any():
+        best_row = metrics.loc[metrics["silhouette"].idxmax()]
+        crit = "Highest silhouette"
+    #if not avaiable pick by inertia
+    else:
+        best_row = metrics.loc[metrics["inertia"].idxmin()]
+        crit = "Lowest inertia (silhouette not available)"
 
-        # Hourly trends
-        hour = pd.to_datetime(df['TIME'], format='%H:%M:%S', errors='coerce')
-        if hour.isna().all():
-            hour = pd.to_datetime(df['TIME'], format='%H:%M', errors='coerce')
-        df['hour'] = hour.dt.hour
-        hourly = df.groupby('hour', dropna=True).size().reset_index(name='crime_count')
-        hourly.to_csv(os.path.join(out_dir, "hourly_trends.csv"), index=False)
+    best_k = int(best_row["k"])
+    best_sil = None if pd.isna(best_row["silhouette"] ) else float(best_row["silhouette"])
+    best_inertia = float( best_row["inertia"])
 
-        logger.info(f"Evaluation reports saved to {out_dir}")
-        return out_dir
-    except Exception as e:
-        logger.exception("Evaluation failed.")
-        raise
+    md = f"""# Model & Evaluation — KMeans
+
+**Model**: KMeans clustering on incident coordinates (latitude/longitude)  
+**Candidate k values**: {list(metrics['k'])}  
+**Selection criterion**: {crit}
+
+**Best k**: {best_k}  
+**Best silhouette**: {best_sil if best_sil is not None else "N/A"}  
+**Best inertia**: {best_inertia:,.0f}
+
+**Artifacts**
+- Metrics table: `data/outputs/metrics/kmeans_metrics.csv`
+- Elbow plot: `data/outputs/figures/kmeans_inertia.png`
+- Silhouette plot: `data/outputs/figures/kmeans_silhouette.png`
+
+**Interpretation**
+- *Silhouette* closer to 1.0 means tighter, well-separated clusters.
+- *Inertia* lower is better, reflecting compact clusters; use the elbow inflection to avoid overfitting.
+"""
+
+    report = os.path.join(metrics_dir, "model_report.md")
+    with open(report, "w", encoding="utf-8") as f:
+        f.write(md)
+
+    # JSON report (machine-readable)
+    report_json = os.path.join(metrics_dir, "model_report.json")
+    with open(report_json, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "model": "KMeans",
+                "candidate_k": metrics["k"].tolist(),
+                "criterion": crit,
+                "best_k": best_k,
+                "best_silhouette": best_sil,
+                "best_inertia": best_inertia,
+                "metrics_csv": os.path.relpath(metrics_csv).replace("\\", "/"),
+            },
+            f,
+            indent=2,
+        )
+
+    logger.info(f"Saved evaluation report: {report}, {report_json}")
+    return {"best_k": best_k, "report_md": report, "report_json": report_json}

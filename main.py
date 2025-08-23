@@ -3,7 +3,7 @@ from logging.handlers import RotatingFileHandler
 
 from etl.extract import extract_data
 from etl.transform_load import transform_data
-from analysis.evaluate import evaluate_data
+from analysis.evaluate import evaluate_kmeans
 from analysis.model import run_model
 from vis.monthly_trends import plot_monthly_trends
 from vis.hourly_patterns import plot_hourly_patterns
@@ -21,36 +21,41 @@ def setup_logging():
     logger.addHandler(sh)
 
 def run_pipeline():
-    logging.info(">>>Starting pipeline<<<")
+    logger = logging.getLogger()
+    logger.info(">>>Starting pipeline<<<")
     
     # A. Extract
     try:
         extracted_path = extract_data()
     except Exception:
-        logging.error("Pipeline aborted during extraction.")
+        logger.error("Pipeline aborted during extraction.")
 
     # B. Transform and Load
     try:
         if extracted_path:
             processed_path = transform_data(extracted_path)
     except Exception:
-        logging.error("Transform stage failed")
+        logger.error("Transform stage failed")
     
-    # C. Analysis - Evaluate
+    #MODEL
     try:
-        if processed_path:
-            evaluate_data(processed_path)
+        model = run_model(processed_path,k_values=(3,4,5,6,7,))
+        logger.info(f"Model artifacts: {model}")
     except Exception:
-        logging.error("Evaluation stage failed")
+        logger.error("Modeling stage failed")
+        model = None
+    
+    #EVAULATE
+    try:
+        if model and "metrics_csv" in model:
+            eval = evaluate_kmeans(model["metrics_csv"])
+            logger.info(f"Evaluation metrics: {eval}")
+        else:
+            logger.error("Skipping evaluation; model output missing or invalid.")
+    except Exception:
+        logger.error("Evaluation stage failed")
 
-    # D. Analysis - Model
-    try:
-        if processed_path:
-            run_model(processed_path)
-    except Exception:
-        logging.error("Modeling stage failed")
-    
-    logging.error(">>>Pipeline finisgehed<<<")
+    logger.error(">>>Pipeline finisgehed<<<")
 
 def run_visualizations():
     logging.info(">>>Starting visualizations<<<")
